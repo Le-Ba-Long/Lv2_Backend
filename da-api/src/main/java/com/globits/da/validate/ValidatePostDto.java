@@ -1,4 +1,7 @@
 package com.globits.da.validate;
 
-public class ValidatePostDto {
+import com.globits.core.dto.BaseObjectDto;
+
+public class ValidatePostDto extends BaseObjectDto {
+
 }

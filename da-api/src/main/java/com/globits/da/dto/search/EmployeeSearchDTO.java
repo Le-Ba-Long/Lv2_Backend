@@ -1,4 +1,4 @@
-package com.globits.da.dto;
+package com.globits.da.dto.search;
 
 import lombok.*;
 

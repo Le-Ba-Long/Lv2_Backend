@@ -18,6 +18,9 @@ insert into employee(code,name,email,phone,age) values ('DTC5','Hoàng Đức C�
 insert into employee(code,name,email,phone,age) values ('DTC6','Nguyễn Đức Anh','AnhDapHut@gmail.com','09888888',35);
 insert into employee(code,name,email,phone,age) values ('DTC7','Nguyễn Bảo Anh','BaoAnh@gmail.com','09888888',35);
 
+
+SELECT * FROM lv2.province;
+
 select *
 from employee
 where age like '%32%';
@@ -26,10 +29,10 @@ SELECT COUNT(*) AS "Tong"
 FROM employee
 WHERE age> 25;
 
-create index index_age on employee(age);
+create unique index  index_age on employee(age,email);
 EXPLAIN select code,email,age
 from employee
-where index_age = 22 ;
+where index_age = 22 and index_age ='LongKuBi@gmail.com' ;
 
 SHOW INDEXES FROM employee;
  SELECT COUNT(id)  

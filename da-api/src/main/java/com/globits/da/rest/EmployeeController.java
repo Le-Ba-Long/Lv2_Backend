@@ -1,7 +1,8 @@
 package com.globits.da.rest;
 
+import com.globits.da.domain.Employee;
 import com.globits.da.dto.EmployeeDTO;
-import com.globits.da.dto.ResponseObject;
+import com.globits.da.dto.ResponseRequest;
 import com.globits.da.file.ExcelGenerator;
 import com.globits.da.file.testReadFile;
 import com.globits.da.service.EmployeeService;
@@ -10,6 +11,10 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/employee")
 public class EmployeeController {
@@ -38,16 +44,16 @@ public class EmployeeController {
     private final Path root = Paths.get("E:\\BAI_TAP_LUYEN_TAP\\Thuc Tap Java OcenTech\\Bai Tap Lv 2\\L2_Backend\\uploads");
 
     @GetMapping("/list")
-    public ResponseEntity<ResponseObject> getAllEmployee() {
+    public ResponseEntity<ResponseRequest> getAllEmployee() {
         List<EmployeeDTO> listEmployeeDto = employeeService.getAllEmployee()
                 .stream()
                 .map(employee -> modelMapper.map(employee, EmployeeDTO.class))
                 .collect(Collectors.toList());
         return listEmployeeDto.isEmpty() ?
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseObject("Not Found", "List Employee Is Empty", listEmployeeDto)) :
+                        .body(new ResponseRequest(404, "List Employee Is Empty", listEmployeeDto)) :
                 ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseObject("OK", "Perform Query Success", listEmployeeDto));
+                        .body(new ResponseRequest(200, "Perform Query Success", listEmployeeDto));
     }
 
     //    // Đang Lỗi
@@ -66,14 +72,14 @@ public class EmployeeController {
 //
     //   }
     @PostMapping("/add")
-    public ResponseEntity<ResponseObject> insertEmployee(@RequestBody(required = true) EmployeeDTO employeeDTO) {
+    public ResponseEntity<ResponseRequest> insertEmployee(@RequestBody(required = true) EmployeeDTO employeeDTO) {
         return ValidateEmployee.checkEmployeeIsEmpty(employeeDTO) ?
                 ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseObject("OK"
+                        .body(new ResponseRequest(200
                                 , "Insert Database Success"
                                 , employeeService.insertEmployee(employeeDTO))) :
                 ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                        .body(new ResponseObject("Fail"
+                        .body(new ResponseRequest(501
                                 , "Insert Database not Success", employeeDTO));
     }
 
@@ -96,7 +102,7 @@ public class EmployeeController {
 
     //Cách 2 Trả về Messseger kèm data
     @PutMapping("/update/{id}")
-    public ResponseEntity<ResponseObject> insertEmployee(@PathVariable("id") Long id, @RequestBody EmployeeDTO employeeDTO) {
+    public ResponseEntity<ResponseRequest> insertEmployee(@PathVariable("id") Long id, @RequestBody EmployeeDTO employeeDTO) {
         employeeService.findEmployeeById(id)
                 .map(employee -> {
                     employee.setCode(employeeDTO.getCode());
@@ -111,18 +117,18 @@ public class EmployeeController {
             employeeDTO.setId(id);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new ResponseObject("OK", "Update Employee Success", employeeDTO));
+                    .body(new ResponseRequest(200, "Update Employee Success", employeeDTO));
         } else {
             employeeDTO.setId(id);
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject("NOT_FOUND", "Can Not Find Employee Have Id: " + id, employeeDTO));
+                    .body(new ResponseRequest(404, "Can Not Find Employee Have Id: " + id, employeeDTO));
         }
     }
 
     //cách 1(xóa nhân viên) trả về data và Messeger
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ResponseObject> deleteEmployeeById(@PathVariable("id") Long id) {
+    public ResponseEntity<ResponseRequest> deleteEmployeeById(@PathVariable("id") Long id) {
         Optional<EmployeeDTO> employeeDTO = employeeService.findEmployeeById(id)
                 .map(employee -> modelMapper.map(employee, EmployeeDTO.class));
         if (employeeDTO.isPresent()) {
@@ -130,12 +136,12 @@ public class EmployeeController {
             logger.info("Delete  Employee Have Id: " + id);
             return ResponseEntity.
                     status(HttpStatus.OK)
-                    .body(new ResponseObject("OK", "Deleted Employee Have Id: " + id, employeeDTO));
+                    .body(new ResponseRequest(200, "Deleted Employee Have Id: " + id, employeeDTO));
         } else {
             logger.info("Không Tìm Thấy Employee Có Id: " + id);
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject("Not Found", "Can Not Find Employee Have Id: " + id, employeeDTO));
+                    .body(new ResponseRequest(404, "Can Not Find Employee Have Id: " + id, employeeDTO));
         }
     }
     //cách 2(xóa nhân viên) trả về mã trạng thái lỗi
@@ -171,7 +177,6 @@ public class EmployeeController {
         response.setContentType("application/octet-stream");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
-
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=employee" + currentDateTime + ".xlsx";
         response.setHeader(headerKey, headerValue);
@@ -180,7 +185,7 @@ public class EmployeeController {
         generator.exportExcelFile(response);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseObject("OK", "Export Success", listOfStudents));
+                .body(new ResponseRequest(200, "Export Success", listOfStudents));
 
     }
 
@@ -191,8 +196,6 @@ public class EmployeeController {
             Path filepath = Paths.get(root.toString(), file.getOriginalFilename());
             OutputStream os = Files.newOutputStream(filepath);
             os.write(file.getBytes());
-
-
             List<EmployeeDTO> tutorials = testReadFile.excelToTutorials(filepath.toString());
             tutorials.forEach(x -> {
                 System.out.println(x.getName());
@@ -203,9 +206,16 @@ public class EmployeeController {
                 employeeService.saveAll(tutorials);
                 return new ResponseEntity<>(tutorials, HttpStatus.OK);
             }
-
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/get-list-employee-page")
+    public Page<Employee> getListOfEmployeesByPage(
+            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "2") Integer size) {
+        Pageable pageable = PageRequest.of(page, size, new Sort(Sort.Direction.ASC, "id"));
+        return employeeService.getPage(pageable);
     }
 }

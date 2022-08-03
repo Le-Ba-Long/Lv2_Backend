@@ -9,9 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ResponseObject {
-    private String status;
-    private String messenger;
-    private Object data;
+public class ResponseRequest<T> {
+    private  int statusCode;
+    private String messageError;
+    private T data;
 
 }

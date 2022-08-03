@@ -1,0 +1,2 @@
+2022-08-04 00:07:38.043  INFO 19776 --- [http-nio-8888-exec-1] c.globits.da.rest.RestCommuneController  : Delete Not Success
+2022-08-04 00:08:22.624  INFO 19776 --- [http-nio-8888-exec-4] c.globits.da.rest.RestCommuneController  : Delete Success

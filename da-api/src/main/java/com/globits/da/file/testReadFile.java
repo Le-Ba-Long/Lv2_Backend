@@ -6,10 +6,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -18,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class testReadFile {
+    @Autowired
+    public EntityManager entityManager;
     public static String TYPE = "application/octet-stream";
     static String[] HEADERs = {"ID", "Code", "Name", "Email", "Phone", "Age"};
     static String SHEET = "Tutorials";
@@ -28,8 +31,8 @@ public class testReadFile {
         }
         return true;
     }
-
     public static List<EmployeeDTO> excelToTutorials(String file) {
+
         try {
             InputStream inputStream = Files.newInputStream(new File(file).toPath());
             Workbook workbook = new XSSFWorkbook(inputStream);
